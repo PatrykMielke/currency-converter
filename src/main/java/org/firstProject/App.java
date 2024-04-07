@@ -1,33 +1,24 @@
 package org.firstProject;
 
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-
-import javax.swing.text.NumberFormatter;
-import java.io.FileReader;
-import java.text.DecimalFormat;
+import org.json.JSONObject;
 import java.util.Hashtable;
-import java.util.InputMismatchException;
-import java.util.Scanner;
+import static org.firstProject.Functions.getCurrencyAmmount;
+import static org.firstProject.Functions.getCurrencyCode;
 
 
 public class App
 {
     public static void main( String[] args ) throws Exception
     {
-        // Gathering data from json file
+        String json = Functions.getJson();
 
-        JSONParser jsonParser = new JSONParser();
-        FileReader reader = new FileReader("src/main/java/org/firstProject/curr.json");
-
-        // contains every exchange rate with euro as base currency
-        JSONObject obj = (JSONObject) jsonParser.parse(reader);
-        String eur = obj.get("eur").toString();
+        JSONObject obj = new JSONObject(json);
+        String exchangeRatesBasedOnEuro = obj.get("eur").toString();
 
         // removing {}s
-        eur = eur.substring(1);
-        eur = eur.substring(0, eur.length()-1);
-        String[] values =  eur.split(",");
+        exchangeRatesBasedOnEuro = exchangeRatesBasedOnEuro.substring(1);
+        exchangeRatesBasedOnEuro = exchangeRatesBasedOnEuro.substring(0, exchangeRatesBasedOnEuro.length()-1);
+        String[] values =  exchangeRatesBasedOnEuro.split(",");
 
         // add exchange rates to a hashtable
         Hashtable<String, Double> rates = new Hashtable<>();
@@ -46,40 +37,14 @@ public class App
         String currTo = getCurrencyCode(rates);
         Double currAmmount = getCurrencyAmmount();
 
-        Double convertedAmmount = rates.get(currTo)/rates.get(currFrom)*currAmmount;
-
-        DecimalFormat formatter = new DecimalFormat();
-        formatter.setMaximumFractionDigits(12);
-        //
-        System.out.println("");
-        System.out.println(currAmmount + " " + currFrom.toUpperCase() + " = " + formatter.format(convertedAmmount) + " " + currTo.toUpperCase()  );
+        Double calculatedExchangeRate = rates.get(currTo) / rates.get(currFrom);
+        Double convertedAmmount = calculatedExchangeRate * currAmmount;
 
 
-    }
-    private static String getCurrencyCode(Hashtable<String, Double> rates) {
-        Scanner scanner = new Scanner(System.in);
+        // final output
+        System.out.println("Exchange rate: " + calculatedExchangeRate );
+        System.out.println(currAmmount + " " + currFrom.toUpperCase() + " = " + convertedAmmount + " " + currTo.toUpperCase()  );
 
-        System.out.println("Please provide a currency code");
-        String providedString = scanner.nextLine().toLowerCase();
 
-        while (!rates.containsKey(providedString)) {
-            System.out.println("Please provide a supported currency code");
-            providedString = scanner.nextLine();
-        }
-
-        return providedString;
-    }
-    private static Double getCurrencyAmmount() {
-        Scanner scanner = new Scanner(System.in);
-
-        System.out.println("Please provide an ammount");
-        while (true) {
-            try {
-                return scanner.nextDouble();
-            } catch (InputMismatchException e) {
-                System.out.println("Please provide a number!");
-                scanner.next();
-            }
-        }
     }
 }
